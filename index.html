@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚙️ Física 3° CT - Ingeniería y Electromagnetismo</title>
+    <style>
+        /* ESTÉTICA TÉCNICA (Gris Oscuro e Industrial) */
+        html, body { 
+            background-color: #2c2c2c !important; /* Gris carbón industrial */
+            margin: 0; 
+            padding: 0; 
+        }
+        body {
+            color: #e0e0e0; /* Gris muy claro para lectura técnica */
+            font-family: 'Consolas', 'Monaco', 'Lucida Console', monospace;
+            max-width: 950px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            line-height: 1.5;
+        }
+
+        /* HEADER TIPO DASHBOARD */
+        header {
+            border: 2px solid #00ffcc;
+            padding: 20px;
+            background: #1a1a1a;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.1);
+            margin-bottom: 40px;
+        }
+        h1 { color: #00ffcc; margin: 0; font-size: 1.8em; text-transform: uppercase; }
+
+        /* SECCIONES MODULARES */
+        h2 { 
+            color: #ff9f43; /* Naranja industrial para subtítulos */
+            border-bottom: 1px solid #ff9f4333;
+            padding-bottom: 8px;
+            margin-top: 40px;
+        }
+
+        /* LINKS TIPO CONSOLA */
+        ul { list-style: none; padding: 0; }
+        li { 
+            background: #333333; 
+            margin: 10px 0; 
+            padding: 12px 18px; 
+            border-radius: 3px; 
+            border-right: 4px solid #00ffcc; /* Acento técnico a la derecha */
+            display: flex;
+            align-items: center;
+        }
+        
+        a { 
+            color: #00ffcc; 
+            text-decoration: none; 
+            font-weight: bold;
+        }
+        a:hover { color: #ffffff; background: #00ffcc33; }
+
+        /* BLOQUES DE DATOS / IMÁGENES */
+        .data-panel {
+            background: #1a1a1a;
+            border: 1px solid #444;
+            padding: 15px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        img { max-width: 100%; border: 1px solid #00ffcc; filter: grayscale(20%); }
+
+        /* FOOTER TIPO LOG */
+        footer { 
+            text-align: left; 
+            margin-top: 60px; 
+            padding: 20px; 
+            border-top: 1px solid #444;
+            font-size: 0.85em;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>[ SYSTEM.LOG: FÍSICA 3° CT ]</h1>
+        <p>> UNIDAD 2: LEY DE GAUSS Y MÉTODOS DE SIMETRÍA</p>
+    </header>
+
+    <h2>01. FUNDAMENTOS Y TEORÍA ANALÍTICA</h2>
+    <ul>
+        <li>[PDF] <a href="gauss_calculo_flujo.pdf" target="_blank">_Análisis del Flujo Eléctrico y Ley de Gauss</a></li>
+        <li>[DOC] <a href="gauss_superficies.pdf" target="_blank">_Criterios de Simetría Esférica, Cilíndrica y Planar</a></li>
+    </ul>
+
+    <h2>02. CÁLCULO Y RESOLUCIÓN TÉCNICA</h2>
+    <ul>
+        <li>[LAB] <a href="guia_problemas_gauss.pdf" target="_blank">_Repartido de Problemas: Integración de Campo</a></li>
+        <li>[REF] <a href="respuestas_gauss_tecnico.pdf" target="_blank">_Validación de Resultados y Procedimientos</a></li>
+    </ul>
+
+    <div class="data-panel">
+        <p style="color:#00ffcc; text-align:left; font-size: 0.9em;">// VISUAL_DATA: MODELADO DE CAMPO</p>
+        <img src="modelo_gaussiano.jpg" alt="Modelo de Campo Eléctrico">
+        <p><small>Análisis vectorial en superficies de Gauss cerradas.</small></p>
+    </div>
+
+    <h2>03. SIMULACIÓN Y COMPUTACIÓN APLICADA</h2>
+    <ul>
+        <li>[EXE] <a href="simulador_gauss_ct.html">_Entorno Virtual: Distribuciones de Carga</a></li>
+        <li>[JS] <a href="actividades_interactivas.html">_Algoritmos de Cálculo de Flujo Neto</a></li>
+    </ul>
+
+    <footer>
+        <p>TERMINAL_ID: Prof. Alejandro Parnizari | Bachillerato Tecnológico 2026</p>
+        <div style="margin-top: 10px;">
+            <a rel="license" href="http://creativecommons.org/licenses/by/4.0/" style="background:transparent;">
+                <img alt="CC BY 4.0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" style="border:none;">
+            </a>
+            <p>ASISTENCIA: CLAUDE AI | LICENCIA: CC-BY-4.0-INTL</p>
+        </div>
+    </footer>
+
+</body>
+</html>
