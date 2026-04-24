@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Flujo Eléctrico y Ley de Gauss | Laboratorio Interactivo 3D</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <!-- Importar Three.js y complementos -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+            }
+        }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f0f4fa;
+            color: #0a1c2f;
+            line-height: 1.5;
+            padding: 1.5rem;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #0b2b44, #1f6392);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.01em;
+        }
+        .subhead {
+            font-size: 1rem;
+            color: #2c5270;
+            border-left: 4px solid #1f6392;
+            padding-left: 1rem;
+            margin: 0.5rem 0 1.8rem;
+        }
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.8rem;
+            margin-bottom: 2rem;
+        }
+        .card {
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(0px);
+            border-radius: 1.8rem;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+            padding: 1.4rem 1.8rem;
+            border: 1px solid #e2edf7;
+            transition: all 0.2s;
+        }
+        .card-full {
+            grid-column: span 2;
+        }
+        .card h2 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-left: 5px solid #2c7da0;
+            padding-left: 0.8rem;
+        }
+        .question-item {
+            background: #f8fafd;
+            margin: 0.8rem 0;
+            padding: 1rem;
+            border-radius: 1.2rem;
+            transition: 0.1s;
+        }
+        .vf-buttons {
+            display: flex;
+            gap: 1rem;
+            margin: 0.6rem 0 0.5rem;
+        }
+        button.vf-btn, .mc-btn {
+            background: #e2e8f0;
+            border: none;
+            padding: 0.4rem 1.2rem;
+            border-radius: 2rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #1e293b;
+        }
+        button.vf-btn.verdadero:hover, button.mc-btn:hover { background: #cbd5e1; }
+        .feedback {
+            margin-top: 0.6rem;
+            font-size: 0.85rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 1rem;
+            display: inline-block;
+            width: 100%;
+        }
+        .correct-fb { background: #d1fae5; color: #065f46; border-left: 4px solid #10b981; }
+        .incorrect-fb { background: #ffe4e2; color: #9b2c1d; border-left: 4px solid #ef4444; }
+        .mc-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin: 0.7rem 0;
+        }
+        .mc-option {
+            background: #eef3fc;
+            padding: 0.3rem 1rem;
+            border-radius: 2rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: 0.1s;
+        }
+        .mc-option.selected {
+            background: #2c7da0;
+            color: white;
+        }
+        .num-input {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin: 0.8rem 0;
+        }
+        .num-input input {
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            border: 1px solid #cbd5e1;
+            font-family: monospace;
+            width: 180px;
+        }
+        .btn-check {
+            background: #2c7da0;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 2rem;
+            cursor: pointer;
+        }
+        .simu-3d {
+            background: #11181c;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            height: 450px;
+            position: relative;
+        }
+        #canvas3d {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .simu-caption {
+            background: #1e2a36;
+            color: #cbd5e6;
+            padding: 0.6rem;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+        @media (max-width: 900px) {
+            .grid-2col { grid-template-columns: 1fr; }
+            .card-full { grid-column: span 1; }
+        }
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #5b6e8c;
+        }
+        .highlight {
+            font-weight: 700;
+            color: #1f6392;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>⚡ Flujo eléctrico & Ley de Gauss 3D</h1>
+    <div class="subhead">Material interactivo · V/F evaluable · Opción múltiple · Respuestas numéricas · Simulador 3D con superficies gaussianas</div>
+
+    <!-- primera fila: simulador 3D ocupa todo el ancho -->
+    <div class="card card-full" style="padding: 0; overflow: hidden;">
+        <div style="padding: 1rem 1.5rem 0 1.5rem;">
+            <h2 style="border-left-color: #48a0c0;">🌐 Simulador 3D: Superficie Gaussiana (esfera) y campo radial</h2>
+            <p style="margin-bottom: 0.5rem;">Visualiza una carga puntual y una superficie esférica gaussiana. Arrastra con el mouse (órbita) para girar la cámara. <strong>Ley de Gauss:</strong> el flujo solo depende de si la carga está dentro de la esfera.</p>
+        </div>
+        <div id="simu3d-container" class="simu-3d">
+            <canvas id="canvas3d"></canvas>
+        </div>
+        <div class="simu-caption">
+            🟡 Esfera traslúcida = superficie gaussiana | 🔴 Esfera roja = carga positiva | Las líneas de campo salen radialmente. <strong>Flujo ∝ Q_enc</strong>.
+        </div>
+    </div>
+
+    <!-- fila de verdadero/falso y opción múltiple en dos columnas -->
+    <div class="grid-2col">
+        <!-- COLUMNA VERDADERO/FALSO -->
+        <div class="card">
+            <h2>📋 Verdadero o Falso</h2>
+            <div id="vf-container"></div>
+        </div>
+
+        <!-- COLUMNA OPCIÓN MÚLTIPLE -->
+        <div class="card">
+            <h2>🔘 Opción Múltiple</h2>
+            <div id="mc-container"></div>
+        </div>
+    </div>
+
+    <!-- FILA EJERCICIOS NUMÉRICOS -->
+    <div class="card card-full">
+        <h2>🔢 Respuesta única numérica</h2>
+        <div id="num-container" style="display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: space-between;"></div>
+    </div>
+
+    <!-- Enlaces y recursos complementarios -->
+    <div class="card card-full">
+        <h2>📺 YouTube (español) + Simuladores externos</h2>
+        <div style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between;">
+            <div><a href="https://www.youtube.com/watch?v=ioBqEf4rCJ0" target="_blank">▶ Flujo y Ley de Gauss (El Traductor)</a></div>
+            <div><a href="https://www.youtube.com/watch?v=2RpLZuBqj_E" target="_blank">▶ Simetrías: esférica, cilíndrica, plana</a></div>
+            <div><a href="https://www.youtube.com/watch?v=4FSM9TQqG-s" target="_blank">▶ Cubo con carga puntual</a></div>
+            <div><a href="https://phet.colorado.edu/sims/html/gauss-law/latest/gauss-law_es.html" target="_blank">🔬 PhET Ley de Gauss</a></div>
+            <div><a href="https://www.geogebra.org/m/xK3E5nzK" target="_blank">📐 GeoGebra 3D flujo en cubo</a></div>
+        </div>
+        <p style="margin-top: 1rem; font-size: 0.85rem;">💡 Basado en los ejercicios del PDF: tarro cilíndrico, esferas conductoras, línea infinita, etc.</p>
+    </div>
+    <footer>Material didáctico - Ley de Gauss: Φ = ∮ E·dA = Q_enc / ε₀ | Simulador 3D con Three.js</footer>
+</div>
+
+<script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+    // ----- SIMULADOR 3D MEJORADO -----
+    const canvasEl = document.getElementById('canvas3d');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a1420);
+    scene.fog = new THREE.FogExp2(0x0a1420, 0.008);
+    
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
+    camera.position.set(3, 2, 4);
+    camera.lookAt(0, 0, 0);
+    
+    const renderer = new THREE.WebGLRenderer({ canvas: canvasEl, antialias: true });
+    const labelRenderer = new CSS2DRenderer();
+    labelRenderer.setSize(1, 1);
+    labelRenderer.domElement.style.position = 'absolute';
+    labelRenderer.domElement.style.top = '0px';
+    labelRenderer.domElement.style.left = '0px';
+    labelRenderer.domElement.style.pointerEvents = 'none';
+    canvasEl.parentElement.appendChild(labelRenderer.domElement);
+    
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.autoRotate = false;
+    controls.enableZoom = true;
+    
+    // Iluminación
+    const ambientLight = new THREE.AmbientLight(0x404060);
+    scene.add(ambientLight);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+    dirLight.position.set(1, 2, 1);
+    scene.add(dirLight);
+    const backLight = new THREE.PointLight(0x4466cc, 0.3);
+    backLight.position.set(-1, 0, -2);
+    scene.add(backLight);
+    
+    // Superficie gaussiana: esfera transparente (wireframe + transparente)
+    const gaussianSphere = new THREE.Mesh(
+        new THREE.SphereGeometry(1.2, 48, 32),
+        new THREE.MeshPhongMaterial({ color: 0x3b82f6, wireframe: false, transparent: true, opacity: 0.12, side: THREE.DoubleSide })
+    );
+    scene.add(gaussianSphere);
+    const wireframeSphere = new THREE.Mesh(
+        new THREE.SphereGeometry(1.2, 24, 18),
+        new THREE.MeshBasicMaterial({ color: 0x60a5fa, wireframe: true, transparent: true, opacity: 0.35 })
+    );
+    scene.add(wireframeSphere);
+    
+    // Carga puntual (roja)
+    const chargeMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(0.22, 32, 32),
+        new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0x440000, emissiveIntensity: 0.4 })
+    );
+    scene.add(chargeMesh);
+    // posicionar carga inicial dentro de la esfera
+    chargeMesh.position.set(0.6, 0.5, 0.4);
+    
+    // Pequeño brillo
+    const glow = new THREE.PointLight(0xff4444, 0.6, 2);
+    chargeMesh.add(glow);
+    
+    // Líneas de campo: varias lineas desde la carga hasta el infinito visual
+    const fieldLines = [];
+    const lineCount = 24;
+    const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffaa66 });
+    for (let i = 0; i < lineCount; i++) {
+        const points = [];
+        points.push(new THREE.Vector3(0, 0, 0));
+        const dir = new THREE.Vector3(Math.sin(i*Math.PI*2/lineCount), Math.cos(i*Math.PI*2/lineCount)*0.8, Math.sin(i*Math.PI*2/lineCount)*0.6).normalize();
+        const end = dir.clone().multiplyScalar(2.2);
+        points.push(end);
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        const lineObj = new THREE.Line(geometry, lineMaterial);
+        scene.add(lineObj);
+        fieldLines.push({ line: lineObj, direction: dir });
+    }
+    
+    // función actualiza líneas de campo según posición carga
+    function updateFieldLines(pos) {
+        for (let fl of fieldLines) {
+            const start = pos.clone();
+            const end = start.clone().add(fl.direction.clone().multiplyScalar(1.9));
+            const points = [start, end];
+            fl.line.geometry.dispose();
+            fl.line.geometry = new THREE.BufferGeometry().setFromPoints(points);
+        }
+    }
+    
+    // etiqueta CSS2D
+    const labelDiv = document.createElement('div');
+    labelDiv.textContent = '⚡ Carga +Q';
+    labelDiv.style.color = '#facc15';
+    labelDiv.style.fontSize = '14px';
+    labelDiv.style.fontWeight = 'bold';
+    labelDiv.style.textShadow = '1px 1px 0px black';
+    const labelObj = new CSS2DObject(labelDiv);
+    scene.add(labelObj);
+    
+    // agregar etiqueta de superficie
+    const gaussLabelDiv = document.createElement('div');
+    gaussLabelDiv.textContent = 'Superficie Gaussiana';
+    gaussLabelDiv.style.color = '#93c5fd';
+    gaussLabelDiv.style.fontSize = '12px';
+    gaussLabelDiv.style.backgroundColor = 'rgba(0,0,0,0.5)';
+    gaussLabelDiv.style.padding = '2px 6px';
+    gaussLabelDiv.style.borderRadius = '20px';
+    const gaussLabel = new CSS2DObject(gaussLabelDiv);
+    gaussLabel.position.set(1.4, 1.1, 0);
+    scene.add(gaussLabel);
+    
+    // animación y actualización de líneas
+    let time = 0;
+    function animate() {
+        requestAnimationFrame(animate);
+        controls.update(); // actualiza cámara
+        // actualizar líneas respecto a carga
+        updateFieldLines(chargeMesh.position);
+        labelObj.position.copy(chargeMesh.position);
+        labelObj.position.y += 0.35;
+        
+        // pequeño efecto pulsante
+        const scale = 1 + Math.sin(time * 5) * 0.02;
+        chargeMesh.scale.set(scale, scale, scale);
+        time += 0.02;
+        
+        const width = canvasEl.clientWidth;
+        const height = canvasEl.clientHeight;
+        renderer.setSize(width, height);
+        labelRenderer.setSize(width, height);
+        renderer.render(scene, camera);
+        labelRenderer.render(scene, camera);
+    }
+    animate();
+    
+    // función para que la carga se pueda mover aleatoriamente o mantener fija, pero mejor: mostrar que se puede reposicionar?
+    // Por simplicidad añadimos control de posición con slider? pero ya avanzado, mejor indicar que haciendo clic en botón se mueve dentro/fuera
+    // Agregamos dos botones en el caption? Para hacerlo interactivo, añadimos un control pequeño dentro del caption
+    const controlDiv = document.createElement('div');
+    controlDiv.style.marginTop = '8px';
+    controlDiv.style.display = 'flex';
+    controlDiv.style.gap = '10px';
+    controlDiv.style.justifyContent = 'center';
+    const btnInside = document.createElement('button');
+    btnInside.textContent = '🔴 Carga DENTRO de la esfera';
+    btnInside.style.background = '#2c7da0';
+    btnInside.style.border = 'none';
+    btnInside.style.padding = '4px 12px';
+    btnInside.style.borderRadius = '24px';
+    btnInside.style.color = 'white';
+    btnInside.style.cursor = 'pointer';
+    const btnOutside = document.createElement('button');
+    btnOutside.textContent = '🔵 Carga FUERA de la esfera';
+    btnOutside.style.background = '#4b5563';
+    btnOutside.style.border = 'none';
+    btnOutside.style.padding = '4px 12px';
+    btnOutside.style.borderRadius = '24px';
+    btnOutside.style.color = 'white';
+    btnOutside.style.cursor = 'pointer';
+    controlDiv.appendChild(btnInside);
+    controlDiv.appendChild(btnOutside);
+    const captionDiv = document.querySelector('.simu-caption');
+    captionDiv.appendChild(controlDiv);
+    
+    function setChargeInside(inside) {
+        if (inside) {
+            chargeMesh.position.set(0.5, 0.3, 0.4);
+        } else {
+            chargeMesh.position.set(1.8, 1.2, 1.3);
+        }
+        updateFieldLines(chargeMesh.position);
+    }
+    btnInside.addEventListener('click', () => setChargeInside(true));
+    btnOutside.addEventListener('click', () => setChargeInside(false));
+    
+    // Inicializar dentro
+    setChargeInside(true);
+    
+    // Redimensionar
+    window.addEventListener('resize', () => {
+        const w = canvasEl.clientWidth, h = canvasEl.clientHeight;
+        renderer.setSize(w, h);
+        labelRenderer.setSize(w, h);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+    });
+    setTimeout(() => {
+        const w = canvasEl.clientWidth, h = canvasEl.clientHeight;
+        renderer.setSize(w, h);
+        labelRenderer.setSize(w, h);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+    }, 100);
+    
+    // ---------------- VERDADERO FALSO INTERACTIVO (datos) ----------------
+    const vfQuestions = [
+        { text: "Si por una superficie cerrada salen más líneas de campo de las que entran, la carga neta encerrada es positiva.", correct: true, explanation: "Líneas salientes indican flujo positivo ⇒ Q_enc > 0 (Ley de Gauss)." },
+        { text: "El flujo eléctrico a través de un cubo con carga centrada es igual al flujo a través de un cilindro con la misma carga.", correct: true, explanation: "El flujo neto solo depende de Q_enc, no de la forma de la superficie." },
+        { text: "Si el flujo neto a través de una superficie cerrada es cero, entonces el campo eléctrico es nulo en todos los puntos de esa superficie.", correct: false, explanation: "Flujo nulo puede deberse a que no hay carga neta, pero el campo puede ser no nulo (ej: dipolo)." },
+        { text: "En un conductor en equilibrio electrostático, el flujo a través de una superficie interior al conductor es siempre cero.", correct: true, explanation: "Dentro del conductor E=0 ⇒ flujo nulo independientemente." },
+        { text: "La ley de Gauss solo es útil si el campo eléctrico es constante sobre toda la superficie gaussiana.", correct: false, explanation: "Es útil también con simetrías (esférica, cilíndrica, plana) sin ser constante en toda superficie, pero sí en partes." }
+    ];
+    
+    function renderVF() {
+        const container = document.getElementById('vf-container');
+        container.innerHTML = '';
+        vfQuestions.forEach((q, idx) => {
+            const div = document.createElement('div');
+            div.className = 'question-item';
+            div.innerHTML = `<strong>${idx+1}. ${q.text}</strong>`;
+            const btnDiv = document.createElement('div');
+            btnDiv.className = 'vf-buttons';
+            const btnTrue = document.createElement('button');
+            btnTrue.textContent = 'Verdadero';
+            btnTrue.classList.add('vf-btn');
+            const btnFalse = document.createElement('button');
+            btnFalse.textContent = 'Falso';
+            btnFalse.classList.add('vf-btn');
+            const feedbackSpan = document.createElement('div');
+            feedbackSpan.className = 'feedback';
+            btnTrue.onclick = () => evaluateVF(q.correct, true, feedbackSpan, q.explanation);
+            btnFalse.onclick = () => evaluateVF(q.correct, false, feedbackSpan, q.explanation);
+            btnDiv.appendChild(btnTrue);
+            btnDiv.appendChild(btnFalse);
+            div.appendChild(btnDiv);
+            div.appendChild(feedbackSpan);
+            container.appendChild(div);
+        });
+    }
+    
+    function evaluateVF(correct, selected, feedbackEl, explanation) {
+        if (correct === selected) {
+            feedbackEl.innerHTML = `✅ Correcto. ${explanation}`;
+            feedbackEl.className = 'feedback correct-fb';
+        } else {
+            feedbackEl.innerHTML = `❌ Incorrecto. ${explanation}`;
+            feedbackEl.className = 'feedback incorrect-fb';
+        }
+    }
+    
+    // ---------------- OPCIÓN MÚLTIPLE ----------------
+    const mcQuestions = [
+        { text: "Una superficie cerrada encierra carga neta de -2 μC. El flujo eléctrico neto es:", options: ["Positivo", "Negativo", "Cero", "Depende del tamaño"], correct: 1, explanation: "Flujo = Q_enc/ε₀, carga negativa ⇒ flujo negativo." },
+        { text: "Para una esfera conductora cargada, el campo eléctrico en su interior es:", options: ["kq/r²", "Cero", "Constante no nula", "σ/ε₀"], correct: 1, explanation: "En conductores en equilibrio, el campo interior es nulo." },
+        { text: "Línea infinita de carga (densidad λ). El campo a distancia r es proporcional a:", options: ["1/r²", "1/r", "r", "constante"], correct: 1, explanation: "Ley de Gauss cilíndrica: E = λ/(2π ε₀ r)." }
+    ];
+    
+    function renderMC() {
+        const container = document.getElementById('mc-container');
+        container.innerHTML = '';
+        mcQuestions.forEach((q, idx) => {
+            const div = document.createElement('div');
+            div.className = 'question-item';
+            div.innerHTML = `<strong>${idx+1}. ${q.text}</strong>`;
+            const optDiv = document.createElement('div');
+            optDiv.className = 'mc-options';
+            const feedbackSpan = document.createElement('div');
+            feedbackSpan.className = 'feedback';
+            q.options.forEach((opt, optIdx) => {
+                const optEl = document.createElement('div');
+                optEl.textContent = opt;
+                optEl.classList.add('mc-option');
+                optEl.onclick = () => {
+                    const isCorrect = (optIdx === q.correct);
+                    if (isCorrect) {
+                        feedbackSpan.innerHTML = `✅ Correcto. ${q.explanation}`;
+                        feedbackSpan.className = 'feedback correct-fb';
+                    } else {
+                        feedbackSpan.innerHTML = `❌ Incorrecto. La respuesta correcta es: ${q.options[q.correct]}. ${q.explanation}`;
+                        feedbackSpan.className = 'feedback incorrect-fb';
+                    }
+                    // resaltar opción seleccionada visualmente: limpiar
+                    Array.from(optDiv.children).forEach(ch => ch.classList.remove('selected'));
+                    optEl.classList.add('selected');
+                };
+                optDiv.appendChild(optEl);
+            });
+            div.appendChild(optDiv);
+            div.appendChild(feedbackSpan);
+            container.appendChild(div);
+        });
+    }
+    
+    // ---------------- RESPUESTA NUMÉRICA ÚNICA (ejercicios clave) ----------------
+    const numericProblems = [
+        { label: "📦 Ejercicio 4a (Flujo total cubo): q = 8.0 μC. Φ = ? (N·m²/C)", correctValue: 904000, tolerance: 5000, placeholder: "Ej: 904000", units: "N·m²/C", solution: "Φ = q/ε₀ = 8e-6 / 8.85e-12 ≈ 9.04×10⁵ N·m²/C" },
+        { label: "🧪 Ejercicio 9 (Flujo a través de S que encierra dos esferas): σA=6e-6 C/m² r=0.1m; σB=-3e-6 C/m² r=0.2m. Φ neto? (N·m²/C)", correctValue: -85300, tolerance: 2000, placeholder: "Ej: -85300", units: "N·m²/C", solution: "qA≈7.54e-7 C, qB≈-1.51e-6 C, qneta≈ -7.55e-7 C, Φ≈ -8.53e4 N·m²/C" },
+        { label: "📐 Ejercicio 10a (tapa 2 cilindro): E=1500 N/C, radio=0.15m, flujo a través de tapa = ?", correctValue: 106, tolerance: 5, placeholder: "106", units: "N·m²/C", solution: "Φ = E·π·r² = 1500·π·0.0225 ≈ 106 N·m²/C" }
+    ];
+    
+    function renderNumerical() {
+        const container = document.getElementById('num-container');
+        container.innerHTML = '';
+        numericProblems.forEach((prob, idx) => {
+            const card = document.createElement('div');
+            card.style.flex = "1 1 280px";
+            card.style.background = "#f9fbfe";
+            card.style.borderRadius = "1.2rem";
+            card.style.padding = "1rem";
+            card.style.border = "1px solid #dce5f0";
+            card.innerHTML = `<strong>${prob.label}</strong><br>`;
+            const inputDiv = document.createElement('div');
+            inputDiv.className = 'num-input';
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.placeholder = prob.placeholder;
+            const checkBtn = document.createElement('button');
+            checkBtn.textContent = 'Verificar';
+            checkBtn.classList.add('btn-check');
+            const resultSpan = document.createElement('div');
+            resultSpan.style.marginTop = '0.6rem';
+            resultSpan.style.fontSize = '0.85rem';
+            resultSpan.style.fontFamily = 'monospace';
+            inputDiv.appendChild(input);
+            inputDiv.appendChild(checkBtn);
+            card.appendChild(inputDiv);
+            card.appendChild(resultSpan);
+            
+            checkBtn.onclick = () => {
+                const val = parseFloat(input.value);
+                if (isNaN(val)) {
+                    resultSpan.innerHTML = '⚠️ Ingresa un número.';
+                    resultSpan.style.color = '#b45309';
+                    return;
+                }
+                const diff = Math.abs(val - prob.correctValue);
+                if (diff <= prob.tolerance) {
+                    resultSpan.innerHTML = `✅ ¡Correcto! ${prob.solution}`;
+                    resultSpan.style.color = '#065f46';
+                } else {
+                    resultSpan.innerHTML = `❌ Incorrecto. Valor aproximado: ${prob.correctValue} ${prob.units}. ${prob.solution}`;
+                    resultSpan.style.color = '#9b2c1d';
+                }
+            };
+            container.appendChild(card);
+        });
+    }
+    
+    renderVF();
+    renderMC();
+    renderNumerical();
+</script>
+</body>
+</html>
